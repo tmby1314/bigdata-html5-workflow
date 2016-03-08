@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="../../js/jquery-1.8.1.min.js"></script>
+</head>
+<body>
+
+<table>
+    <tr>
+        <td>
+            <img src="/html5/images/hive.png"
+                 draggable="true" width="40" height="40"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="hive">
+        </td>
+        <td>
+            <img src="/html5/images/accept.png"
+                 draggable="true" width="40" height="40"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="success">
+        </td>
+        <td>
+            <img src="/html5/images/start.jpg"
+                 draggable="true" width="40" height="40"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="start">
+        </td>
+        <td>
+            <img src="/html5/images/connect.png" width="40" height="40"
+                 style="border:1px solid #c3c3c3;" onclick="startLine()">
+
+        </td>
+    </tr>
+</table>
+<canvas id="canvas" width="800" height="500"
+        style="border:1px solid #c3c3c3;"
+        onmousedown="canvasMouseDown(event)"
+        onmouseup="canvasMouseUp(event)"
+        onmousemove="canvasMouseMove(event)"
+        ondragover="canvasDragOver(event)"
+        ondrop="canvasDrop(event)"
+        ></canvas>
+
+<textarea rows="33" cols="95" id="content"></textarea>
+
+
+<script type="text/javascript">
+    var xmlContent = "";
+    var mouseDownNode = "";
+    var canvas = document.getElementById("canvas");
+    var canvasContext = canvas.getContext("2d");
+    var canvasWidth = parseInt(canvas.getAttribute("width"));
+    var canvasHeight = parseInt(canvas.getAttribute("height"));
+    var wantDrawLine = false;
+
+    jQuery(function () {
+        jQuery.ajax({
+            type: "GET",
+            url: "/html5/xml/hive_show_tables_20151113112213214.xml",
+            dataType: "xml",
+            async: false,
+            success: function (data) {
+                xmlContent = data;
+            }
+        });
+        draw();
+    });
+
+    function startLine() {
+        wantDrawLine = true;
+    }
+
+    function canvasMouseDown(ev) {
+        if (wantDrawLine == true) {
+            wantDrawLine = false;
+            var startNode = "";
+            var endNode = "";
+            var evx = transClientX2CanvasX(parseInt(ev.clientX));
+            var evy = transClientY2CanvasY(parseInt(ev.clientY));
+
+            $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {
+
+                var name = $(node).children("name").text();
+                var selected = $(node).attr("selected");
+                if (selected == "true") {
+                    startNode = name;
+                } else {
+                    var x = parseInt($(node).children("x").text());
+                    var y = parseInt($(node).children("y").text());
+                    if (evx > x && evx < x + 40 && evy > y && evy < y + 40) {
+                        mouseDownNode = "";
+                        endNode = name;
+                        $(node).attr("selected", "true");
+                    } else {
+                        $(node).attr("selected", "false");
+                    }
+                }
+
+            });
+
+
+            //判断是否是有效的连线
+            var sure = true;
+            if (startNode != "" && endNode != "" && startNode != endNode) {
+                $(xmlContent).find("hops").children("hop").each(function (hopIndex, hop) {     //查找所有nodes节点并遍历
+                    var startN = $(hop).children("from").text();
+                    var endN = $(hop).children("to").text();
+                    if ((startNode == startN && endNode == endN) || (startNode == endN && endNode == startN)) {
+                        sure = false;
+                        alert("连线已存在");
+                    }
+
+                });
+
+
+                if (sure == true) {
+                    var hopString = '<hop>\n' +
+                            '<type>connect</type>\n' +
+                            '<from>' + startNode + '</from>\n' +
+                            '<to>' + endNode + '</to>\n' +
+                            '<enabled>Y</enabled>\n' +
+                            '<evaluation>Y</evaluation>\n' +
+                            '<unconditional>Y</unconditional>\n' +
+                            '</hop>';
+                    $(xmlContent).find("hops").append(hopString);
+                    draw();
+                }
+
+
+            }
+
+        } else {
+            $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
+                var x = parseInt($(node).children("x").text());
+                var y = parseInt($(node).children("y").text());
+                var name = $(node).children("name").text();
+                var evx = transClientX2CanvasX(parseInt(ev.clientX));
+                var evy = transClientY2CanvasY(parseInt(ev.clientY));
+                if (evx > x && evx < x + 40 && evy > y && evy < y + 40) {
+                    mouseDownNode = name;
+                    $(node).attr("selected", "true");
+                } else {
+                    $(node).attr("selected", "false");
+                }
+            });
+        }
+    }
+
+    function canvasMouseUp(ev) {
+        draw();
+        mouseDownNode = "";
+    }
+
+    function canvasMouseMove(ev) {
+        if (mouseDownNode.length > 0) {
+            $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
+                var name = $(node).children("name").text();
+                var evx = transClientX2CanvasX(parseInt(ev.clientX));
+                var evy = transClientY2CanvasY(parseInt(ev.clientY));
+                if (mouseDownNode == name) {
+                    //不允许图标超出画图框
+                    evx = (evx > 20) ? evx : 20;
+                    evy = (evy > 20) ? evy : 20;
+                    evx = (evx < canvasWidth - 20) ? evx : canvasWidth - 20;
+                    evy = (evy < canvasHeight - 20) ? evy : canvasHeight - 20;
+
+                    $(node).children("x").text(evx - 20);
+                    $(node).children("y").text(evy - 20);
+                    //跳出
+                    return false;
+                }
+            });
+            draw();
+        } else {
+            //正常的移动鼠标非拖拽
+            //鼠标悬停变色？
+        }
+
+    }
+
+    function canvasDragOver(ev) {
+        //允许拖放
+        ev.preventDefault();
+
+    }
+
+    function canvasDrop(ev) {
+        ev.preventDefault();
+        var type = ev.dataTransfer.getData("type");
+        var evx = transClientX2CanvasX(parseInt(ev.clientX));
+        var evy = transClientY2CanvasY(parseInt(ev.clientY));
+        //不允许图标超出画图框
+        evx = (evx > 20) ? evx : 20;
+        evy = (evy > 20) ? evy : 20;
+        evx = (evx < canvasWidth - 20) ? evx : canvasWidth - 20;
+        evy = (evy < canvasHeight - 20) ? evy : canvasHeight - 20;
+
+        //清除其他节点选中状态
+        $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {
+            $(node).attr("selected", "false");
+        });
+
+        //生成node节点
+        var nodeString = '<node selected="true">\n' +
+                '<type>' + type + '</type>\n' +
+                '<name>' + type + '_' + new Date().getMilliseconds() + '</name>\n' +
+                '<x>' + (evx - 20) + '</x>\n' +
+                '<y>' + (evy - 20) + '</y>\n' +
+                '<label>开始</label>\n' +
+                '</node>';
+        $(xmlContent).find("nodes").append(nodeString);
+        draw();
+
+    }
+
+    function dragStart(ev) {
+        ev.dataTransfer.setData("type", ev.target.id);
+    }
+
+
+    //读取xml 并显示在canvas上
+    function draw() {
+//        jQuery("#content").val((new XMLSerializer()).serializeToString(xmlContent));
+
+        //清理画板
+        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+        //画图标
+        $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
+            var type = $(node).children("type").text();
+            var name = $(node).children("name").text();
+            var x = parseInt($(node).children("x").text());
+            var y = parseInt($(node).children("y").text());
+            var selected = $(node).attr("selected");
+            var img = document.getElementById(type);
+            var control = new Image();
+            control.src = img.getAttribute("src");
+            control.onload = function () {
+                canvasContext.drawImage(control, x, y, 40, 40);
+                if (selected == "true") {
+                    canvasContext.strokeStyle = "blue";
+                } else {
+                    canvasContext.strokeStyle = "black";
+                }
+
+                canvasContext.lineWidth = 1;
+                canvasContext.strokeRect(x, y, 40, 40);
+
+                var textWidth = canvasContext.measureText(type).width;
+                canvasContext.strokeText(type, x + 20 - (textWidth / 2), y + 52);
+            }
+
+
+        });
+
+        //画带箭头连线
+        $(xmlContent).find("hops").children("hop").each(function (hopIndex, hop) {     //查找所有nodes节点并遍历
+            var startX = 0;
+            var startY = 0;
+            var endX = 0;
+            var endY = 0;
+            var startNode = $(hop).children("from").text();
+            var endNode = $(hop).children("to").text();
+
+            $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
+                var name = $(node).children("name").text();
+                var x = parseInt($(node).children("x").text());
+                var y = parseInt($(node).children("y").text());
+                if (name == startNode) {
+                    startX = x + 20;
+                    startY = y + 20;
+                } else if (name == endNode) {
+                    endX = x + 20;
+                    endY = y + 20;
+                }
+
+            });
+
+            canvasContext.beginPath();
+
+            //画连线
+            canvasContext.moveTo(startX, startY);
+            canvasContext.lineTo(endX, endY);
+
+            //画箭头
+            var middleX = (startX + endX) / 2;
+            var middleY = (startY + endY) / 2;
+            var arrowHeight = 18;
+            var arrowWidth = 6;
+            var angle = Math.atan2(endY - startY, endX - startX);
+            canvasContext.lineWidth = 1.4;
+            canvasContext.strokeStyle = "black";
+            canvasContext.moveTo(middleX - arrowHeight * Math.cos(angle) - arrowWidth * Math.sin(angle),
+                    middleY - arrowHeight * Math.sin(angle) + arrowWidth * Math.cos(angle));
+            canvasContext.lineTo(middleX, middleY);
+            canvasContext.lineTo(middleX - arrowHeight * Math.cos(angle) + arrowWidth * Math.sin(angle),
+                    middleY - arrowHeight * Math.sin(angle) - arrowWidth * Math.cos(angle));
+            canvasContext.closePath();
+            canvasContext.stroke();
+        });
+
+
+    }
+
+    function transClientX2CanvasX(x) {
+        var canvas = document.getElementById("canvas");
+        var canvasX = canvas.offsetLeft;
+        return parseInt(x) - parseInt(canvasX);
+
+    }
+
+    function transClientY2CanvasY(y) {
+        var canvas = document.getElementById("canvas");
+        var canvasY = canvas.offsetTop;
+        return parseInt(y) - parseInt(canvasY);
+    }
+
+
+</script>
+
+</body>
+</html>

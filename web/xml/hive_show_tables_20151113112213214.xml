@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flow>
+    <files>
+        <file>/xushanshan_test/hive/show_tables.sql</file>
+    </files>
+    <nodes>
+        <node selected="true">
+            <type>hive</type>
+            <name>hive_20151113112137189</name>
+            <x>338</x>
+            <y>215</y>
+            <label>hive</label>
+            <file>/xushanshan_test/hive/show_tables.sql</file>
+            <attempt>0</attempt>
+        </node>
+        <node selected="false">
+            <type>hive</type>
+            <name>hive_20151113112137188</name>
+            <x>358</x>
+            <y>355</y>
+            <label>hive</label>
+            <file>/xushanshan_test/hive/show_tables.sql</file>
+            <attempt>0</attempt>
+        </node>
+        <node selected="false">
+            <type>success</type>
+            <name>success_20151113112133312</name>
+            <x>497</x>
+            <y>110</y>
+            <label>成功</label>
+        </node>
+        <node selected="false">
+            <type>start</type>
+            <name>start_20151113112131897</name>
+            <x>145</x>
+            <y>112</y>
+            <label>开始</label>
+        </node>
+    </nodes>
+
+    <hops>
+        <hop>
+            <type>connect</type>
+            <from>hive_20151113112137189</from>
+            <to>success_20151113112133312</to>
+            <enabled>N</enabled>
+            <evaluation>Y</evaluation>
+            <unconditional>Y</unconditional>
+        </hop>
+        <hop>
+            <type>connect</type>
+            <from>start_20151113112131897</from>
+            <to>hive_20151113112137189</to>
+            <enabled>Y</enabled>
+            <evaluation>Y</evaluation>
+            <unconditional>Y</unconditional>
+        </hop>
+        <hop>
+            <type>connect</type>
+            <from>hive_20151113112137188</from>
+            <to>success_20151113112133312</to>
+            <enabled>Y</enabled>
+            <evaluation>Y</evaluation>
+            <unconditional>N</unconditional>
+        </hop>
+        <hop>
+            <type>connect</type>
+            <from>start_20151113112131897</from>
+            <to>hive_20151113112137188</to>
+            <enabled>Y</enabled>
+            <evaluation>N</evaluation>
+            <unconditional>N</unconditional>
+        </hop>
+    </hops>
+</flow>
