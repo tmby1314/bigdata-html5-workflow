@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="js/jquery-1.12.1.js"></script>
+    <script type="text/javascript" src="js/workflow.js"></script>
+</head>
+<body>
+<table style="background-color: darkgray; font-size: 12px;width: 120px;float: left; margin-right: 1px;">
+    <tr>
+        <td>
+            <img src="images/start.jpg"
+                 draggable="true" width="20" height="20"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="start">
+        </td>
+        <td>
+            开始
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="images/accept.png"
+                 draggable="true" width="20" height="20"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="success"/>
+        </td>
+        <td>
+            运行成功
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="images/hive.png" title="执行 hive 语句"
+                 draggable="true" width="20" height="20"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="hive">
+        </td>
+        <td>
+            执行hive
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="images/jar.jpg"
+                 draggable="true" width="20" height="20"
+                 style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="jar"/>
+        </td>
+        <td>
+            运行jar包
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="images/connect.png" width="20" height="20"
+                 style="border:1px solid #c3c3c3;" onclick="startLine()"/>
+
+        </td>
+        <td>
+            连线
+        </td>
+    </tr>
+</table>
+
+<div id="div" style="width: 1024px; height: 768px; float: left;"></div>
+
+
+<script type="text/javascript">
+    var workflow = null;
+    jQuery(function () {
+        jQuery.ajax({
+            type: "GET",
+            url: "/html5/xml/hive_show_tables_20151113112213214.xml",
+            dataType: "xml",
+            async: false,
+            success: function (data) {
+                workflow = $("#div").workflow(data);
+            }
+        });
+
+    });
+
+    function startLine() {
+        workflow.drawLine();
+    }
+
+
+</script>
+
+</body>
+</html>

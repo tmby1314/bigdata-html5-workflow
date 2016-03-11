@@ -4,37 +4,33 @@
         <file>/xushanshan_test/hive/show_tables.sql</file>
     </files>
     <nodes>
-        <node selected="true">
-            <type>hive</type>
-            <name>hive_20151113112137189</name>
-            <x>338</x>
-            <y>215</y>
-            <label>hive</label>
-            <file>/xushanshan_test/hive/show_tables.sql</file>
-            <attempt>0</attempt>
+        <node selected="true" x="300" y="300">
+            <type readonly="true" type="text" title="节点类型" description="不可更改">hive</type>
+            <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137189</name>
+            <label readonly="false" type="text" title="节点名称" description="节点名称">hive1</label>
+            <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                /xushanshan_test/hive/show_tables.sql
+            </file>
+            <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
         </node>
-        <node selected="false">
-            <type>hive</type>
-            <name>hive_20151113112137188</name>
-            <x>358</x>
-            <y>355</y>
-            <label>hive</label>
-            <file>/xushanshan_test/hive/show_tables.sql</file>
-            <attempt>0</attempt>
+        <node selected="false" x="200" y="100">
+            <type readonly="true" type="text" title="节点类型" description="不可更改">hive</type>
+            <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137188</name>
+            <label readonly="false" type="text" title="节点名称" description="节点名称">hive2</label>
+            <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                /xushanshan_test/hive/show_tables.sql
+            </file>
+            <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
         </node>
-        <node selected="false">
-            <type>success</type>
-            <name>success_20151113112133312</name>
-            <x>497</x>
-            <y>110</y>
-            <label>成功</label>
+        <node selected="false" x="300" y="1">
+            <type readonly="true" type="text" title="节点类型" description="不可更改">success</type>
+            <name readonly="true" type="text" title="节点id" description="不可更改">success_20151113112133312</name>
+            <label readonly="false" type="text" title="节点名称" description="节点名称">成功</label>
         </node>
-        <node selected="false">
-            <type>start</type>
-            <name>start_20151113112131897</name>
-            <x>145</x>
-            <y>112</y>
-            <label>开始</label>
+        <node selected="false" x="1" y="1">
+            <type readonly="true" type="text" title="节点类型" description="不可更改">start</type>
+            <name readonly="true" type="text" title="节点id" description="不可更改">start_20151113112131897</name>
+            <label readonly="false" type="text" title="节点名称" description="节点名称">开始</label>
         </node>
     </nodes>
 

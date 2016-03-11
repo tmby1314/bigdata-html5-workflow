@@ -1,15 +1,22 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title></title>
-    <script type="text/javascript" src="js/jquery-1.8.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery-1.12.1.js"></script>
+    <style type="text/css">
+        /*#canvas*/
+        /*{*/
+        /*border:1px solid #c3c3c3;*/
+        /*cursor: url("http://www.useragentman.com/examples/cursor/canvasPainter/canvas_painter_v0.1/images/gimpBrush.png") 0 32, crosshair;*/
+        /*}*/
+    </style>
 </head>
 <body>
+
 <div>
     <div style="float: left; width: 92px;">
-        <img src="images/hive.png"
+        <img src="images/hive.png" title="执行 hive 语句"
              draggable="true" width="40" height="40"
              style="border:1px solid #c3c3c3;" ondragstart="dragStart(event)" id="hive">
 
@@ -28,22 +35,34 @@
         <img src="images/connect.png" width="40" height="40"
              style="border:1px solid #c3c3c3;" onclick="startLine()">
 
-
     </div>
     <div style="float: left;">
         <canvas id="canvas" width="900" height="550"
-                style="border:1px solid #c3c3c3;"
+                style='border:1px solid #c3c3c3; cursor: url("images/arrow.png") 26 13, move;'
                 onmousedown="canvasMouseDown(event)"
                 onmouseup="canvasMouseUp(event)"
                 onmousemove="canvasMouseMove(event)"
                 ondragover="canvasDragOver(event)"
                 ondrop="canvasDrop(event)"
-                ></canvas>
+
+                >
+
+        </canvas>
+
+        <table border="1" cellspacing="0" bordercolor="#c3c3c3" width="100%"
+               style="border-collapse:collapse; font-size: 14px"
+               id="property">
+            <thead>
+            <td width="20%" style="text-align: center">属性名</td>
+            <td style="text-align: center">属性值</td>
+            <td width="30%" style="text-align: center">说明</td>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
+
 </div>
-
-
-<textarea rows="33" cols="95" id="content"></textarea>
 
 
 <script type="text/javascript">
@@ -87,8 +106,8 @@
                 if (selected == "true") {
                     startNode = name;
                 } else {
-                    var x = parseInt($(node).children("x").text());
-                    var y = parseInt($(node).children("y").text());
+                    var x = parseInt($(node).attr("x"));
+                    var y = parseInt($(node).attr("y"));
                     if (evx > x && evx < x + 40 && evy > y && evy < y + 40) {
                         mouseDownNode = "";
                         endNode = name;
@@ -136,8 +155,8 @@
             var evy = transClientY2CanvasY(parseInt(ev.clientY));
             //点中目标是一个节点
             $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {
-                var x = parseInt($(node).children("x").text());
-                var y = parseInt($(node).children("y").text());
+                var x = parseInt($(node).attr("x"));
+                var y = parseInt($(node).attr("y"));
                 var name = $(node).children("name").text();
 
                 if (evx > x && evx < x + 40 && evy > y && evy < y + 40) {
@@ -186,8 +205,8 @@
                 var unconditional = $(hop).children("unconditional").text();
                 $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
                     var name = $(node).children("name").text();
-                    var x = parseInt($(node).children("x").text());
-                    var y = parseInt($(node).children("y").text());
+                    var x = parseInt($(node).attr("x"));
+                    var y = parseInt($(node).attr("y"));
                     if (name == startNode) {
                         startX = x + 20;
                         startY = y + 20;
@@ -242,6 +261,39 @@
 
     function canvasMouseUp(ev) {
         draw();
+
+        $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
+            var selected = $(node).attr("selected");
+            var tableTbody = $("#property").find("tbody");
+            if (selected == "true") {
+                $(tableTbody).text("");
+                $(node).children().each(function (index, ele) {
+                    var readonly = $(ele).attr("readonly");
+                    var type = $(ele).attr("type");
+                    var title = $(ele).attr("title");
+                    var description = $(ele).attr("description");
+                    var val = $(ele).text();
+
+                    var tr = '<tr>\n';
+                    tr = tr + '<td style="text-align: center">' + title + '</td>\n';
+                    tr = tr + '<td style="text-align: center; ">';
+                    if (readonly == "true") {
+                        tr = tr + '<input style="width:98%" type="' + type + '" value="' + val + '" readonly/>';
+                    } else {
+                        tr = tr + '<input style="width:98%" type="' + type + '" value="' + val + '"/>';
+                    }
+                    tr = tr + '</td>\n';
+                    tr = tr + '<td style="text-align: center">' + description + '</td>\n';
+                    tr = tr + '</tr>';
+
+                    $(tableTbody).append(tr);
+
+                });
+            }
+
+
+        });
+
         mouseDownNode = "";
     }
 
@@ -258,8 +310,8 @@
                     evx = (evx < canvasWidth - 20) ? evx : canvasWidth - 20;
                     evy = (evy < canvasHeight - 20) ? evy : canvasHeight - 20;
 
-                    $(node).children("x").text(evx - 20);
-                    $(node).children("y").text(evy - 20);
+                    $(node).attr("x", evx - 20);
+                    $(node).attr("y", evy - 20);
                     //跳出
                     return false;
                 }
@@ -295,11 +347,9 @@
         });
 
         //生成node节点
-        var nodeString = '<node selected="true">\n' +
+        var nodeString = '<node selected="true" x="' + (evx - 20) + '" y="' + (evy - 20) + '">\n' +
                 '<type>' + type + '</type>\n' +
                 '<name>' + type + '_' + new Date().getMilliseconds() + '</name>\n' +
-                '<x>' + (evx - 20) + '</x>\n' +
-                '<y>' + (evy - 20) + '</y>\n' +
                 '<label>开始</label>\n' +
                 '</node>';
         $(xmlContent).find("nodes").append(nodeString);
@@ -314,7 +364,6 @@
 
     //读取xml 并显示在canvas上
     function draw() {
-        jQuery("#content").val((new XMLSerializer()).serializeToString(xmlContent));
 
         //清理画板
         canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -322,8 +371,9 @@
         $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
             var type = $(node).children("type").text();
             var name = $(node).children("name").text();
-            var x = parseInt($(node).children("x").text());
-            var y = parseInt($(node).children("y").text());
+            var label = $(node).children("label").text();
+            var x = parseInt($(node).attr("x"));
+            var y = parseInt($(node).attr("y"));
             var selected = $(node).attr("selected");
             var img = document.getElementById(type);
             var control = new Image();
@@ -341,8 +391,8 @@
                 canvasContext.strokeRect(x, y, 40, 40);
 
                 //画节点名称
-                var textWidth = canvasContext.measureText(type).width;
-                canvasContext.strokeText(type, x + 20 - (textWidth / 2), y + 52);
+                var textWidth = canvasContext.measureText(label).width;
+                canvasContext.strokeText(label, x + 20 - (textWidth / 2), y + 52);
 
                 //选中状态下可以删除
                 if (selected == "true") {
@@ -387,8 +437,8 @@
 
             $(xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
                 var name = $(node).children("name").text();
-                var x = parseInt($(node).children("x").text());
-                var y = parseInt($(node).children("y").text());
+                var x = parseInt($(node).attr("x"));
+                var y = parseInt($(node).attr("y"));
                 if (name == startNode) {
                     startX = x + 20;
                     startY = y + 20;
