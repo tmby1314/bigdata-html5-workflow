@@ -20,7 +20,7 @@
             <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137189</name>
             <properties>
                 <label readonly="false" type="text" title="节点名称" description="节点名称">hive1</label>
-                <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                <file readonly="true" type="file" title="sql文件" description="选择一个hive-sql文件">
                     /xushanshan_test/hive/show_tables.sql
                 </file>
                 <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
@@ -31,7 +31,7 @@
             <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137188</name>
             <properties>
                 <label readonly="false" type="text" title="节点名称" description="节点名称">hive2</label>
-                <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                <file readonly="true" type="file" title="sql文件" description="选择一个hive-sql文件">
                     /xushanshan_test/hive/show_tables.sql
                 </file>
                 <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>

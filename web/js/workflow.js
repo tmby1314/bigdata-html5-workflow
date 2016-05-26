@@ -117,7 +117,7 @@
             var table = $('<table border="1" cellspacing="0" bordercolor="#000000"></table>');
             table.attr("style", "border-collapse:collapse; width: 100%; font-size: 14px; position: absolute; top: 0px;");
 
-            var titleTr = $('<thead><tr><td style="text-align: center; width: 150px;">属性名</td><td style="text-align: center;">属性值</td><td style="text-align: center; width: 150px;">属性说明</td></tr></thead><tbody></tbody>');
+            var titleTr = $('<thead><tr><td style="text-align: center; width: 150px;">属性名</td><td style="text-align: center;">属性值</td><td style="text-align: center; width: 150px;">属性说明</td></tr></thead><tbody style="font-size: 12px;"></tbody>');
 
             table.append(titleTr);
             //属性框
@@ -153,6 +153,7 @@
             chooseBox.width(leftBox.width() - 1);
             chooseBox.height(leftBox.height() - 30);
 
+            //加载插件
             for (var index = 0; index < plugins.length; index++) {
                 var plugin = plugins[index];
                 var image = plugin['image'];
@@ -338,7 +339,17 @@
                     $(globalParam.propertyTable).find("tbody").html("");
                     dependence.each(function (index, ele) {
                         var file = $(ele).text();
-                        $(globalParam.propertyTable).find("tbody").append('<tr><td style="text-align: center; width: 150px;">依赖文件</td><td><textarea cols="82" rows="7" style="resize: none;">' + file + '</textarea></td><td></td></tr>');
+                        $(globalParam.propertyTable).find("tbody").append('<tr><td style="text-align: center; width: 150px;">依赖文件</td><td><textarea cols="82" rows="7" style="resize: none;" readonly="readonly">' + file + '</textarea></td><td></td></tr>');
+                        //绑定关联文件输入框的点击事件
+                        var textArea = $(globalParam.propertyTable).find("tbody").find("textarea");
+                        $(textArea).click(function () {
+                            var value = _self.setTextAreaValue();
+                            $(textArea).val(value);
+                        });
+
+                        $(textArea).blur(function () {
+                            console.log("应该依赖文件列表要保存到XML里面去");
+                        });
                     });
 
                 } else {
@@ -346,12 +357,40 @@
                     var properties = $(selectedNode).find("properties").children();
                     for (var index = 0; index < properties.length; index++) {
                         var ele = properties[index];
+                        var tagName = ele.tagName;
+                        var type = $(ele).attr("type");
                         var name = $(ele).attr("title");
-                        var value = $(ele).text();
+                        var value = $(ele).text().trim();
                         var description = $(ele).attr("description");
-                        $(globalParam.propertyTable).find("tbody").append('<tr><td style="text-align: center; width: 150px;">' + name + '</td><td><input style="width: 98%" value="' + value + '"></td><td>' + description + '</td></tr>');
+                        if ("file" == type) {
+                            var oneProperty = $('<tr><td style="text-align: center; width: 150px;">' + name + '</td><td><input readonly style="width: 98%" value="' + value + '" id="' + tagName + '"></td><td style="text-align: center">' + description + '</td></tr>');
+                            var inputBox = $(oneProperty).find("#" + tagName);
+
+                            $(inputBox).click(function () {
+                                var value = _self.setInputValue();
+                                var tagName = $(this).attr("id");
+                                $(selectedNode).find(tagName).text(value);
+                                $(this).val(value);
+                            });
+
+                            $(globalParam.propertyTable).find("tbody").append(oneProperty);
+                        } else if ("files" == type) {
+
+                        } else if ("text" == type) {
+                            var oneProperty = $('<tr><td style="text-align: center; width: 150px;">' + name + '</td><td><input style="width: 98%" value="' + value + '" id="' + tagName + '"></td><td style="text-align: center">' + description + '</td></tr>');
+                            var inputBox = $(oneProperty).find("#" + tagName);
+
+                            $(inputBox).keyup(function () {
+                                var tagName = $(this).attr("id");
+                                $(selectedNode).find(tagName).text($(this).val());
+                                canvasContentDraw();
+                            });
+
+                            $(globalParam.propertyTable).find("tbody").append(oneProperty);
+                        }
+
                     }
-                    ;
+
 
                 }
             } else if (ev.button == 1) {
@@ -814,6 +853,22 @@
             globalParam.onDrawLine = true;
         }
 
+        //供给外部回调 用于设置文本域内容
+        _self.setTextAreaValue = function () {
+            if (typeof textAreaClick == "function") {
+                return textAreaClick();
+            }
+            return "";
+        }
+
+        //供给外部回调 用户设置输入框内容
+        _self.setInputValue = function () {
+            if (typeof inputClick == "function") {
+                return inputClick();
+            }
+            return "";
+        }
+
         var plugins = [
             {
                 type: "start",
@@ -832,7 +887,7 @@
                         '<type>' + this.type + '</type>\n' +
                         '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
                         '<properties>' +
-                        '<label title="名称">' + this.type + '</label>\n' +
+                        '<label title="名称" description="节点名称">' + this.type + '</label>\n' +
                         '</properties>' +
                         '</node>';
                     return nodeString;
@@ -856,7 +911,7 @@
                         '<type>' + this.type + '</type>\n' +
                         '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
                         '<properties>' +
-                        '<label title="名称">' + this.type + '</label>\n' +
+                        '<label title="名称" description="节点名称">' + this.type + '</label>\n' +
                         '<sql title="sql" description="选择一个sql文件运行"></sql>\n' +
                         '</properties>' +
                         '</node>';
@@ -880,7 +935,7 @@
                         '<type>' + this.type + '</type>\n' +
                         '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
                         '<properties>' +
-                        '<label title="名称">' + this.type + '</label>\n' +
+                        '<label title="名称" description="节点名称">' + this.type + '</label>\n' +
                         '</properties>' +
                         '</node>';
                     return nodeString;
