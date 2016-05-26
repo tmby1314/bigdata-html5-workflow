@@ -277,6 +277,19 @@
                                 canvasContentDraw();
                                 //可能是拖拽
                                 globalParam.mouseDragNode = selectedNode;
+
+                                // 计算x轴y轴偏移量为拖拽准备
+                                var nodeX = parseInt($(globalParam.mouseDragNode).attr("x"));
+                                var nodeY = parseInt($(globalParam.mouseDragNode).attr("y"));
+                                var mousePosition = getMousePosition(ev);
+                                var evx = mousePosition.x;
+                                var evy = mousePosition.y;
+
+                                var px = evx - nodeX; // x轴偏移量
+                                var py = evy - nodeY; // y轴偏移量
+                                ev.target.px = px;
+                                ev.target.py = py;
+
                             }
                         } else {
                             //点击的是一个未选中的节点
@@ -287,6 +300,19 @@
                             canvasContentDraw();
                             //可能是拖拽
                             globalParam.mouseDragNode = selectedNode;
+
+                            // 计算x轴y轴偏移量为拖拽准备
+                            var nodeX = parseInt($(globalParam.mouseDragNode).attr("x"));
+                            var nodeY = parseInt($(globalParam.mouseDragNode).attr("y"));
+                            var mousePosition = getMousePosition(ev);
+                            var evx = mousePosition.x;
+                            var evy = mousePosition.y;
+
+                            var px = evx - nodeX; // x轴偏移量
+                            var py = evy - nodeY; // y轴偏移量
+                            ev.target.px = px;
+                            ev.target.py = py;
+
                         }
 
                     } else {
@@ -402,20 +428,36 @@
 
         var canvasMouseMove = function (ev) {
             if (globalParam.mouseDragNode != null) {
+                var nodeX = parseInt($(globalParam.mouseDragNode).attr("x"));
+                var nodeY = parseInt($(globalParam.mouseDragNode).attr("y"));
                 var mousePosition = getMousePosition(ev);
                 var evx = mousePosition.x;
                 var evy = mousePosition.y;
 
-                //不允许图标超出画图框
-                evx = (evx > (config.nodeWidth / 2)) ? evx : config.nodeWidth / 2;
-                evy = (evy > (config.nodeHeight / 2)) ? evy : config.nodeHeight / 2;
-                evx = (evx < (config.canvasWidth - config.nodeWidth / 2)) ? evx : (config.canvasWidth - config.nodeWidth / 2);
-                evy = (evy < (config.canvasHeight - config.nodeHeight / 2)) ? evy : (config.canvasHeight - config.nodeHeight / 2);
+                if (evx > nodeX && evx < (nodeX + config.nodeWidth) && evy > nodeY && evy < (nodeY + config.nodeHeight)) {
+                    //表示鼠标在选中的节点里面
 
-                $(globalParam.mouseDragNode).attr("x", evx - config.nodeWidth / 2);
-                $(globalParam.mouseDragNode).attr("y", evy - config.nodeHeight / 2);
+                    //实现图片粘在鼠标上的效果
+                    var px = ev.target.px; // x轴偏移量
+                    var py = ev.target.py; // y轴偏移量
 
-                canvasContentDraw();
+                    var nodeX1 = evx - px;
+                    var nodeY1 = evy - py;
+
+
+                    //不允许图标超出画图框
+                    nodeX1 = (nodeX1 > (config.nodeWidth / 2)) ? nodeX1 : config.nodeWidth / 2;
+                    nodeY1 = (nodeY1 > (config.nodeHeight / 2)) ? nodeY1 : config.nodeHeight / 2;
+                    nodeX1 = (nodeX1 < (config.canvasWidth - config.nodeWidth / 2)) ? nodeX1 : (config.canvasWidth - config.nodeWidth / 2);
+                    nodeY1 = (nodeY1 < (config.canvasHeight - config.nodeHeight / 2)) ? nodeY1 : (config.canvasHeight - config.nodeHeight / 2);
+
+                    $(globalParam.mouseDragNode).attr("x", nodeX1);
+                    $(globalParam.mouseDragNode).attr("y", nodeY1);
+
+                    canvasContentDraw();
+                } else {
+                    //鼠标在节点外面拖拽 自己去玩吧
+                }
             } else if (globalParam.onDrawLine == true) {
                 canvasContentDraw();
                 var selectedNode = getSelectedNode();
