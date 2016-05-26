@@ -105,7 +105,7 @@
             var workflowTitle = $('<p>作业设计</p>');
             workflowTitle.attr("style", "background-color: rgb(237, 249, 251); width: 100%; height: 30px; color: black; position: absolute; top: 0px; line-height: 30px; text-indent: 1em; font-weight: bold; font-size: 14px; margin: 0; padding: 0;");
 
-            var canvas = $('<canvas>您的浏览器不支持canvas，请升级浏览器</canvas>').attr("style", "margin-top: 31px;");
+            var canvas = $('<canvas onselectstart="return false;" style="-moz-user-select:none;">您的浏览器不支持canvas，请升级浏览器</canvas>').attr("style", "margin-top: 31px;");
 
             var propertyDiv = $('<div></div>');
             propertyDiv.attr("style", "width: 100%; bottom: 0px; background: white; position: absolute; top: 68%; margin: 0; padding: 0;");
@@ -205,6 +205,7 @@
             $(globalParam.canvas).mousedown(canvasOnMouseDown);
             $(globalParam.canvas).mouseup(canvasOnMouseUp);
             $(globalParam.canvas).mousemove(canvasMouseMove);
+
             $(globalParam.canvas).contextmenu(function (e) {
                 e.preventDefault();
             });
@@ -213,6 +214,7 @@
         var _loadContent = function () {
 
         };
+
 
         var canvasOnMouseDown = function (ev) {
             if (ev.button == 0) {
@@ -434,30 +436,24 @@
                 var evx = mousePosition.x;
                 var evy = mousePosition.y;
 
-                //if (evx > nodeX && evx < (nodeX + config.nodeWidth) && evy > nodeY && evy < (nodeY + config.nodeHeight)) {
-                    //表示鼠标在选中的节点里面
+                //实现图片粘在鼠标上的效果
+                var px = ev.target.px; // x轴偏移量
+                var py = ev.target.py; // y轴偏移量
 
-                    //实现图片粘在鼠标上的效果
-                    var px = ev.target.px; // x轴偏移量
-                    var py = ev.target.py; // y轴偏移量
+                var nodeX1 = evx - px;
+                var nodeY1 = evy - py;
 
-                    var nodeX1 = evx - px;
-                    var nodeY1 = evy - py;
+                //不允许图标超出画图框
+                nodeX1 = (nodeX1 > (config.nodeWidth / 2)) ? nodeX1 : config.nodeWidth / 2;
+                nodeY1 = (nodeY1 > (config.nodeHeight / 2)) ? nodeY1 : config.nodeHeight / 2;
+                nodeX1 = (nodeX1 < (config.canvasWidth - config.nodeWidth / 2)) ? nodeX1 : (config.canvasWidth - config.nodeWidth / 2);
+                nodeY1 = (nodeY1 < (config.canvasHeight - config.nodeHeight / 2)) ? nodeY1 : (config.canvasHeight - config.nodeHeight / 2);
 
+                $(globalParam.mouseDragNode).attr("x", nodeX1);
+                $(globalParam.mouseDragNode).attr("y", nodeY1);
 
-                    //不允许图标超出画图框
-                    nodeX1 = (nodeX1 > (config.nodeWidth / 2)) ? nodeX1 : config.nodeWidth / 2;
-                    nodeY1 = (nodeY1 > (config.nodeHeight / 2)) ? nodeY1 : config.nodeHeight / 2;
-                    nodeX1 = (nodeX1 < (config.canvasWidth - config.nodeWidth / 2)) ? nodeX1 : (config.canvasWidth - config.nodeWidth / 2);
-                    nodeY1 = (nodeY1 < (config.canvasHeight - config.nodeHeight / 2)) ? nodeY1 : (config.canvasHeight - config.nodeHeight / 2);
+                canvasContentDraw();
 
-                    $(globalParam.mouseDragNode).attr("x", nodeX1);
-                    $(globalParam.mouseDragNode).attr("y", nodeY1);
-
-                    canvasContentDraw();
-                //} else {
-                //    //鼠标在节点外面拖拽 自己去玩吧
-                //}
             } else if (globalParam.onDrawLine == true) {
                 canvasContentDraw();
                 var selectedNode = getSelectedNode();
