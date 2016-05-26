@@ -59,7 +59,8 @@
             canvasContext: null,
             mouseDragNode: null,
             onDrawLine: false,
-            propertyTable: null
+            propertyTable: null,
+            publicParam: new Object()
         };
 
 
@@ -205,10 +206,6 @@
             $(globalParam.canvas).mousedown(canvasOnMouseDown);
             $(globalParam.canvas).mouseup(canvasOnMouseUp);
             $(globalParam.canvas).mousemove(canvasMouseMove);
-
-            $(globalParam.canvas).contextmenu(function (e) {
-                e.preventDefault();
-            });
         };
 
         var _loadContent = function () {
@@ -289,9 +286,8 @@
 
                                 var px = evx - nodeX; // x轴偏移量
                                 var py = evy - nodeY; // y轴偏移量
-                                ev.target.px = px;
-                                ev.target.py = py;
-
+                                globalParam.publicParam.px = px;
+                                globalParam.publicParam.py = py;
                             }
                         } else {
                             //点击的是一个未选中的节点
@@ -312,8 +308,8 @@
 
                             var px = evx - nodeX; // x轴偏移量
                             var py = evy - nodeY; // y轴偏移量
-                            ev.target.px = px;
-                            ev.target.py = py;
+                            globalParam.publicParam.px = px;
+                            globalParam.publicParam.py = py;
 
                         }
 
@@ -430,24 +426,22 @@
 
         var canvasMouseMove = function (ev) {
             if (globalParam.mouseDragNode != null) {
-                var nodeX = parseInt($(globalParam.mouseDragNode).attr("x"));
-                var nodeY = parseInt($(globalParam.mouseDragNode).attr("y"));
                 var mousePosition = getMousePosition(ev);
                 var evx = mousePosition.x;
                 var evy = mousePosition.y;
 
                 //实现图片粘在鼠标上的效果
-                var px = ev.target.px; // x轴偏移量
-                var py = ev.target.py; // y轴偏移量
+                var px = globalParam.publicParam.px; // x轴偏移量
+                var py = globalParam.publicParam.py; // y轴偏移量
 
                 var nodeX1 = evx - px;
                 var nodeY1 = evy - py;
 
                 //不允许图标超出画图框
-                nodeX1 = (nodeX1 > (config.nodeWidth / 2)) ? nodeX1 : config.nodeWidth / 2;
-                nodeY1 = (nodeY1 > (config.nodeHeight / 2)) ? nodeY1 : config.nodeHeight / 2;
-                nodeX1 = (nodeX1 < (config.canvasWidth - config.nodeWidth / 2)) ? nodeX1 : (config.canvasWidth - config.nodeWidth / 2);
-                nodeY1 = (nodeY1 < (config.canvasHeight - config.nodeHeight / 2)) ? nodeY1 : (config.canvasHeight - config.nodeHeight / 2);
+                nodeX1 = (nodeX1 > 0) ? nodeX1 : 0;
+                nodeY1 = (nodeY1 > 0) ? nodeY1 : 0;
+                nodeX1 = (nodeX1 < (config.canvasWidth - config.nodeWidth)) ? nodeX1 : (config.canvasWidth - config.nodeWidth);
+                nodeY1 = (nodeY1 < (config.canvasHeight - config.nodeHeight)) ? nodeY1 : (config.canvasHeight - config.nodeHeight);
 
                 $(globalParam.mouseDragNode).attr("x", nodeX1);
                 $(globalParam.mouseDragNode).attr("y", nodeY1);
@@ -500,15 +494,24 @@
 
         var canvasDragOver = function (ev) {
             //允许拖放
-            ev.preventDefault();
+            if (ev.preventDefault) {
+                ev.preventDefault();
+            } else {
+                ev.returnValue = false;
+            }
+
 
         };
 
         var canvasDrop = function (ev) {
-            ev.preventDefault();
-            var type = ev.dataTransfer.getData("type");
-            var image = ev.dataTransfer.getData("image");
-            console.log("竟然拖过来一个" + type);
+            //允许拖放
+            if (ev.preventDefault) {
+                ev.preventDefault();
+            } else {
+                ev.returnValue = false;
+            }
+
+            var type = globalParam.publicParam.type;
 
             var position = getMousePosition(ev);
 
@@ -535,8 +538,16 @@
         };
 
         var dragStart = function (ev) {
-            ev.dataTransfer.setData("type", event.target.id);
-            ev.dataTransfer.setData("image", event.target.src);
+            if (ev.target) {
+                globalParam.publicParam.type = ev.target.id;
+                globalParam.publicParam.image = ev.target.src;
+            } else {
+                globalParam.publicParam.type = event.srcElement.id;
+                globalParam.publicParam.image = event.srcElement.src;
+                //event.dataTransfer.setData("type", event.srcElement.id);
+                //event.dataTransfer.setData("image", event.srcElement.src);
+            }
+
         };
 
         var getMousePosition = function (evt) {
