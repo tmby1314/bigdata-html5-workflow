@@ -434,7 +434,7 @@
                 var evx = mousePosition.x;
                 var evy = mousePosition.y;
 
-                if (evx > nodeX && evx < (nodeX + config.nodeWidth) && evy > nodeY && evy < (nodeY + config.nodeHeight)) {
+                //if (evx > nodeX && evx < (nodeX + config.nodeWidth) && evy > nodeY && evy < (nodeY + config.nodeHeight)) {
                     //表示鼠标在选中的节点里面
 
                     //实现图片粘在鼠标上的效果
@@ -455,9 +455,9 @@
                     $(globalParam.mouseDragNode).attr("y", nodeY1);
 
                     canvasContentDraw();
-                } else {
-                    //鼠标在节点外面拖拽 自己去玩吧
-                }
+                //} else {
+                //    //鼠标在节点外面拖拽 自己去玩吧
+                //}
             } else if (globalParam.onDrawLine == true) {
                 canvasContentDraw();
                 var selectedNode = getSelectedNode();
