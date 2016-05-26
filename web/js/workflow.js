@@ -343,7 +343,7 @@
                         //绑定关联文件输入框的点击事件
                         var textArea = $(globalParam.propertyTable).find("tbody").find("textarea");
                         $(textArea).click(function () {
-                            var value = _self.setTextAreaValue();
+                            var value = setTextAreaValue();
                             $(textArea).val(value);
                         });
 
@@ -367,7 +367,7 @@
                             var inputBox = $(oneProperty).find("#" + tagName);
 
                             $(inputBox).click(function () {
-                                var value = _self.setInputValue();
+                                var value = setInputValue();
                                 var tagName = $(this).attr("id");
                                 $(selectedNode).find(tagName).text(value);
                                 $(this).val(value);
@@ -390,7 +390,6 @@
                         }
 
                     }
-
 
                 }
             } else if (ev.button == 1) {
@@ -854,7 +853,7 @@
         }
 
         //供给外部回调 用于设置文本域内容
-        _self.setTextAreaValue = function () {
+        var setTextAreaValue = function () {
             if (typeof textAreaClick == "function") {
                 return textAreaClick();
             }
@@ -862,7 +861,7 @@
         }
 
         //供给外部回调 用户设置输入框内容
-        _self.setInputValue = function () {
+        var setInputValue = function () {
             if (typeof inputClick == "function") {
                 return inputClick();
             }
