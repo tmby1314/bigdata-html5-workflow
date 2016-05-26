@@ -3,7 +3,7 @@
  */
 (function ($, window) {
 
-    // 插件定义
+    //拖拽插件定义
     jQuery.fn.workflow = function (xmlContent) {
 
         //别名
@@ -58,7 +58,8 @@
             canvas: null,
             canvasContext: null,
             mouseDragNode: null,
-            onDrawLine: false
+            onDrawLine: false,
+            propertyTable: null
         };
 
 
@@ -85,11 +86,116 @@
             } else {
                 globalParam.xmlContent = $('<?xml version="1.0" encoding="utf-8"?><flow><files></files><nodes></nodes><hops></hops></flow>');
             }
-            globalParam.canvas = $('<canvas></canvas>').attr("width", parseInt(config.canvasWidth)).attr("height", parseInt(config.canvasHeight)).attr("style", "border:1px solid #c3c3c3;");
+
+            // 生成拖拽框
+            var mainDiv = $('<div></div>');
+            mainDiv.attr("style", "width: 1024px; height: 768px; background-color: rgb(216, 216, 216); border: 1px solid #C0C0C0; margin: 0 auto; position: relative; padding: 0;");
+            var mainTitle = $('<p>作业设计</p>');
+            mainTitle.attr("style", "background-color: rgb(223, 246, 249); width: 100%; height: 36px; color: black; position: absolute; top: 0px; line-height: 35px; text-indent: 1em; font-weight: bold; font-size: 14px; margin: 0; padding: 0;");
+            var leftBox = $('<div></div>');
+            leftBox.attr("style", "width: 19.5%; background: white; position: absolute; top: 5.5%; top: 40px; bottom: 0px; left: 0px; margin: 0; padding: 0;");
+            var leftBoxTitle = $('<p>选择组件</p>');
+            leftBoxTitle.attr("style", "background-color: rgb(237, 249, 251); width: 100%; height: 30px; color: black; position: absolute; top: 0px; line-height: 30px; text-indent: 1em; font-weight: bold; font-size: 14px; margin: 0; padding: 0;");
+            var chooseBox = $('<div></div>');
+            chooseBox.attr("style", "margin-top: 30px; border:1px solid #c3c3c3;");
+            var rightBox = $('<div></div>');
+            rightBox.attr("style", "width: 80%; position: absolute; top: 40px; left: 20%; bottom: 0px; margin: 0; padding: 0;");
+            var workflowDiv = $('<div tabindex="0"></div>');
+            workflowDiv.attr("style", "width: 100%; height: 67.2%; background-color: white; margin: 0; padding: 0;");
+            var workflowTitle = $('<p>作业设计</p>');
+            workflowTitle.attr("style", "background-color: rgb(237, 249, 251); width: 100%; height: 30px; color: black; position: absolute; top: 0px; line-height: 30px; text-indent: 1em; font-weight: bold; font-size: 14px; margin: 0; padding: 0;");
+
+            var canvas = $('<canvas>您的浏览器不支持canvas，请升级浏览器</canvas>').attr("style", "margin-top: 31px;");
+
+            var propertyDiv = $('<div></div>');
+            propertyDiv.attr("style", "width: 100%; bottom: 0px; background: white; position: absolute; top: 68%; margin: 0; padding: 0;");
+            var propertyTitle = $('<p>属性</p>');
+            propertyTitle.attr("style", "background-color: rgb(237, 249, 251); width: 100%; height: 30px; color: black; position: absolute; top: 0px; line-height: 30px; text-indent: 1em; font-weight: bold; font-size: 14px; margin: 0; padding: 0;");
+
+            var tableDiv = $('<div></div>');
+            tableDiv.attr("style", "width: 100%; background: white; overflow: auto; position: absolute; top: 30px; bottom: 0px; margin: 0; padding: 0;");
+            var table = $('<table border="1" cellspacing="0" bordercolor="#000000"></table>');
+            table.attr("style", "border-collapse:collapse; width: 100%; font-size: 14px; position: absolute; top: 0px;");
+
+            var titleTr = $('<thead><tr><td style="text-align: center; width: 150px;">属性名</td><td style="text-align: center;">属性值</td><td style="text-align: center; width: 150px;">属性说明</td></tr></thead><tbody></tbody>');
+
+            table.append(titleTr);
+            //属性框
+            tableDiv.append(table);
+            propertyDiv.append(propertyTitle);
+            propertyDiv.append(tableDiv);
+
+            //拖拽框
+            workflowDiv.append(workflowTitle);
+            workflowDiv.append(canvas);
+
+            //右边框
+            rightBox.append(workflowDiv);
+            rightBox.append(propertyDiv);
+
+            //左边框
+            leftBox.append(leftBoxTitle);
+            leftBox.append(chooseBox);
+
+            //大框
+            mainDiv.append(mainTitle);
+            mainDiv.append(leftBox);
+            mainDiv.append(rightBox);
+
+            $(_self).append(mainDiv);
+
+
+            canvas.attr("width", workflowDiv.width() - 2);
+            canvas.attr("height", workflowDiv.height() - 30);
+            config.canvasWidth = workflowDiv.width() - 2;
+            config.canvasHeight = workflowDiv.height() - 30;
+
+            chooseBox.width(leftBox.width() - 1);
+            chooseBox.height(leftBox.height() - 30);
+
+            for (var index = 0; index < plugins.length; index++) {
+                var plugin = plugins[index];
+                var image = plugin['image'];
+                var type = plugin['type'];
+                var pluginNode = $('<img src="' + image + '" draggable="true" width="' + config.nodeWidth + '" height="' + config.nodeHeight + '"  style="border:1px solid #c3c3c3;" id="' + type + '">');
+                pluginNode[0].ondragstart = function () {
+                    dragStart(event);
+                };
+                chooseBox.append(pluginNode);
+            }
+
+            canvas[0].ondragover = function () {
+                canvasDragOver(event);
+            };
+
+            canvas[0].ondrop = function () {
+                canvasDrop(event);
+            }
+
+            $(workflowDiv).keydown(function () {
+                console.log("event.keyCode = " + event.keyCode)
+                if (event && event.keyCode == keyboardCode.SHIFT) { // 按 SHIFT
+                    globalParam.onDrawLine = true;
+                }
+            });
+            $(workflowDiv).keyup(function () {
+                if (event && event.keyCode == keyboardCode.SHIFT) { // 松开 SHIFT
+                    globalParam.onDrawLine = false;
+                }
+                if (event.keyCode == keyboardCode.DELETE || (event.ctrlKey && event.keyCode == keyboardCode.BACKSPACE)) {
+                    var selectedNode = getSelectedNode();
+                    var name = $(selectedNode).children("name").text();
+                    //删除一个节点以及这个节点上的连线
+                    deleteNode(name);
+                    deleteNodeHops(name);
+                    canvasContentDraw();
+                }
+
+            });
+
+            globalParam.propertyTable = table;
+            globalParam.canvas = canvas;
             globalParam.canvasContext = globalParam.canvas[0].getContext("2d");
-
-            $(_self).append(globalParam.canvas);
-
 
         };
 
@@ -111,8 +217,10 @@
             if (ev.button == 0) {
                 //点击了左键
                 if (globalParam.onDrawLine == true) {
-                    var evx = mouseXToCanvasX(parseInt(ev.clientX));
-                    var evy = mouseYToCanvasY(parseInt(ev.clientY));
+                    var mousePosition = getMousePosition(ev);
+                    var evx = mousePosition.x;
+                    var evy = mousePosition.y;
+
                     var startNode = getSelectedNode();
                     var endNode = getClickNode(evx, evy);
                     //判断是否是有效的连线
@@ -129,18 +237,23 @@
                             $(hop).append($('<evaluation>Y</evaluation>'));
                             $(hop).append($('<unconditional>Y</unconditional>'));
                             $(globalParam.xmlContent).find("hops").append(hop);
+
                         } else {
                             alert("连线已存在");
                         }
                     }
                     globalParam.onDrawLine = false;
-                    globalParam.canvas.attr("style", 'border:1px solid #c3c3c3;');
                     clearAllSelectedNode();
                     $(endNode).attr("selected", "true");
+                    canvasContentDraw();
 
                 } else {
-                    var evx = mouseXToCanvasX(parseInt(ev.clientX));
-                    var evy = mouseYToCanvasY(parseInt(ev.clientY));
+                    //不是连线动作
+
+                    var mousePosition = getMousePosition(ev);
+                    var evx = mousePosition.x;
+                    var evy = mousePosition.y;
+
                     var selectedNode = getClickNode(evx, evy);
                     if (selectedNode != null) {
                         //点击的是节点
@@ -150,15 +263,17 @@
                             //判断鼠标是否在删除按钮上
                             var isDelete = checkClickNodeDelete(name, evx, evy);
                             if (isDelete == true) {
+                                //删除一个节点以及这个节点上的连线
                                 deleteNode(name);
                                 deleteNodeHops(name);
+                                canvasContentDraw();
                             } else {
                                 //重新点击了一个选中的节点
                                 //清除所有选中的节点
                                 clearAllSelectedNode();
                                 //设置这个节点为新的被选中的节点
                                 $(selectedNode).attr("selected", "true");
-
+                                canvasContentDraw();
                                 //可能是拖拽
                                 globalParam.mouseDragNode = selectedNode;
                             }
@@ -168,7 +283,7 @@
                             clearAllSelectedNode();
                             //设置这个节点为新的被选中的节点
                             $(selectedNode).attr("selected", "true");
-
+                            canvasContentDraw();
                             //可能是拖拽
                             globalParam.mouseDragNode = selectedNode;
                         }
@@ -181,11 +296,22 @@
                             if (isChangeHop == false) {
                                 //点击的是空白区域
                                 //清除所有选中的节点
-                                clearAllSelectedNode();
                                 //取消拖拽
                                 globalParam.mouseDragNode = null;
+                                var result = clearAllSelectedNode();
+                                if (result != 0) {
+                                    canvasContentDraw();
+                                }
+
+                            } else {
+                                //改变了一条线的状态
+                                canvasContentDraw();
                             }
+                        } else {
+                            //删除了一条线
+                            canvasContentDraw();
                         }
+
                     }
                 }
 
@@ -194,56 +320,155 @@
             } else if (ev.button == 2) {
                 //点击了右键
             }
-            canvasContentDraw();
+
         };
 
-        var canvasOnMouseUp = function (event) {
+        var canvasOnMouseUp = function (ev) {
             //如果选中的是节点 属性框显示这个节点的属性
+            if (ev.button == 0) {
+                //点击了左键
+                globalParam.mouseDragNode = null;
 
-            globalParam.mouseDragNode = null;
-            canvasContentDraw();
+                //加载节点属性
+                var selectedNode = getSelectedNode();
+                if (selectedNode == null) {
+                    //加载全局参数
+                    console.log("加载全局参数");
+                    var dependence = $(globalParam.xmlContent).find("files");
+                    $(globalParam.propertyTable).find("tbody").html("");
+                    dependence.each(function (index, ele) {
+                        var file = $(ele).text();
+                        $(globalParam.propertyTable).find("tbody").append('<tr><td style="text-align: center; width: 150px;">依赖文件</td><td><textarea cols="82" rows="7" style="resize: none;">' + file + '</textarea></td><td></td></tr>');
+                    });
+
+                } else {
+                    $(globalParam.propertyTable).find("tbody").html("");
+                    var properties = $(selectedNode).find("properties").children();
+                    for (var index = 0; index < properties.length; index++) {
+                        var ele = properties[index];
+                        var name = $(ele).attr("title");
+                        var value = $(ele).text();
+                        var description = $(ele).attr("description");
+                        $(globalParam.propertyTable).find("tbody").append('<tr><td style="text-align: center; width: 150px;">' + name + '</td><td><input style="width: 98%" value="' + value + '"></td><td>' + description + '</td></tr>');
+                    }
+                    ;
+
+                }
+            } else if (ev.button == 1) {
+                // 点击了滑轮
+            } else if (ev.button == 2) {
+                //点击了右键
+            }
+
         };
 
         var canvasMouseMove = function (ev) {
             if (globalParam.mouseDragNode != null) {
-                var evx = mouseXToCanvasX(parseInt(ev.clientX));
-                var evy = mouseYToCanvasY(parseInt(ev.clientY));
-                //不允许图标超出画图框
-                evx = (evx > 20) ? evx : 20;
-                evy = (evy > 20) ? evy : 20;
-                evx = (evx < config.canvasWidth - 20) ? evx : config.canvasWidth - 20;
-                evy = (evy < config.canvasHeight - 20) ? evy : config.canvasHeight - 20;
+                var mousePosition = getMousePosition(ev);
+                var evx = mousePosition.x;
+                var evy = mousePosition.y;
 
-                $(globalParam.mouseDragNode).attr("x", evx - 20);
-                $(globalParam.mouseDragNode).attr("y", evy - 20);
+                //不允许图标超出画图框
+                evx = (evx > (config.nodeWidth / 2)) ? evx : config.nodeWidth / 2;
+                evy = (evy > (config.nodeHeight / 2)) ? evy : config.nodeHeight / 2;
+                evx = (evx < (config.canvasWidth - config.nodeWidth / 2)) ? evx : (config.canvasWidth - config.nodeWidth / 2);
+                evy = (evy < (config.canvasHeight - config.nodeHeight / 2)) ? evy : (config.canvasHeight - config.nodeHeight / 2);
+
+                $(globalParam.mouseDragNode).attr("x", evx - config.nodeWidth / 2);
+                $(globalParam.mouseDragNode).attr("y", evy - config.nodeHeight / 2);
 
                 canvasContentDraw();
+            } else if (globalParam.onDrawLine == true) {
+                canvasContentDraw();
+                var selectedNode = getSelectedNode();
+                if (selectedNode != null) {
+                    var x = $(selectedNode).attr("x");
+                    var y = $(selectedNode).attr("y");
+                    var startX = parseInt(x) + (config.nodeWidth / 2);
+                    var startY = parseInt(y) + (config.nodeHeight / 2);
+                    var p = getMousePosition(ev);
+                    var endX = p.x;
+                    var endY = p.y;
+
+                    //=====画连线=====
+                    globalParam.canvasContext.beginPath();
+                    globalParam.canvasContext.lineWidth = config.hopWidth;
+                    globalParam.canvasContext.strokeStyle = "black";
+                    globalParam.canvasContext.moveTo(startX, startY);
+                    globalParam.canvasContext.lineTo(endX, endY);
+                    globalParam.canvasContext.closePath();
+                    globalParam.canvasContext.stroke();
+                    globalParam.canvasContext.beginPath();
+                    //画箭头
+                    var middleX = (startX + endX) / 2;
+                    var middleY = (startY + endY) / 2;
+                    var arrowHeight = config.arrowHeight;
+                    var arrowWidth = config.arrowWidth;
+                    var angle = Math.atan2(endY - startY, endX - startX);
+
+                    globalParam.canvasContext.moveTo(middleX - arrowHeight * Math.cos(angle) - arrowWidth * Math.sin(angle),
+                        middleY - arrowHeight * Math.sin(angle) + arrowWidth * Math.cos(angle));
+                    globalParam.canvasContext.lineTo(middleX, middleY);
+                    globalParam.canvasContext.lineTo(middleX - arrowHeight * Math.cos(angle) + arrowWidth * Math.sin(angle),
+                        middleY - arrowHeight * Math.sin(angle) - arrowWidth * Math.cos(angle));
+
+                    globalParam.canvasContext.closePath();
+                    globalParam.canvasContext.stroke();
+                }
+
             } else {
                 //正常的移动鼠标非拖拽
                 //鼠标悬停变色？
             }
         };
 
-        var canvasDragOver = function (event) {
-            alert("canvasDragOver");
+        var canvasDragOver = function (ev) {
+            //允许拖放
+            ev.preventDefault();
+
         };
 
-        var canvasDrop = function (event) {
-            alert("canvasDrop");
+        var canvasDrop = function (ev) {
+            ev.preventDefault();
+            var type = ev.dataTransfer.getData("type");
+            var image = ev.dataTransfer.getData("image");
+            console.log("竟然拖过来一个" + type);
+
+            var position = getMousePosition(ev);
+
+            var evx = position.x;
+            var evy = position.y;
+            //不允许图标超出画图框
+            evx = (evx > (config.nodeWidth / 2)) ? evx : config.nodeWidth / 2;
+            evy = (evy > (config.nodeHeight / 2)) ? evy : config.nodeHeight / 2;
+            evx = (evx < (config.canvasWidth - config.nodeWidth / 2)) ? evx : (config.canvasWidth - config.nodeWidth / 2);
+            evy = (evy < (config.canvasHeight - config.nodeHeight / 2)) ? evy : (config.canvasHeight - config.nodeHeight / 2);
+
+            //清除其他节点选中状态
+            clearAllSelectedNode();
+            for (var index = 0; index < plugins.length; index++) {
+                var n = plugins[index];
+                var nType = n['type'];
+                if (type == nType) {
+                    var nodeString = n.getXmlContent();
+                    var node = $(nodeString).attr("x", (evx - config.nodeWidth / 2)).attr("y", (evy - config.nodeHeight / 2));
+                    $(globalParam.xmlContent).find("nodes").append(node);
+                    canvasContentDraw();
+                }
+            }
         };
 
-        var dragStart = function (event) {
-            alert("dragStart");
+        var dragStart = function (ev) {
+            ev.dataTransfer.setData("type", event.target.id);
+            ev.dataTransfer.setData("image", event.target.src);
         };
 
-        var mouseXToCanvasX = function (mouseX) {
-            var canvasOffsetLeft = globalParam.canvas[0].offsetLeft;
-            return parseInt(mouseX) - parseInt(canvasOffsetLeft);
-        };
-
-        var mouseYToCanvasY = function (mouseY) {
-            var canvasOffsetTop = globalParam.canvas[0].offsetTop;
-            return parseInt(mouseY) - parseInt(canvasOffsetTop);
+        var getMousePosition = function (evt) {
+            var rect = globalParam.canvas[0].getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left * (globalParam.canvas[0].width / rect.width),
+                y: evt.clientY - rect.top * (globalParam.canvas[0].height / rect.height)
+            }
         }
 
         //获取选中的节点
@@ -410,9 +635,16 @@
         }
 
         var clearAllSelectedNode = function () {
+            var result = 0;
             $(globalParam.xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {
-                $(node).attr("selected", "false");
+                var selected = $(node).attr("selected");
+                if (selected == "true") {
+                    $(node).attr("selected", "false");
+                    result++;
+                }
+
             });
+            return result;
         };
 
         var deleteNode = function (nodeName) {
@@ -443,13 +675,12 @@
             $(globalParam.xmlContent).find("nodes").children("node").each(function (nodeIndex, node) {     //查找所有nodes节点并遍历
                 var type = $(node).children("type").text();
                 var name = $(node).children("name").text();
-                var label = $(node).children("label").text();
+                var label = $(node).children("properties").children("label").text();
                 var x = parseInt($(node).attr("x"));
                 var y = parseInt($(node).attr("y"));
                 var selected = $(node).attr("selected");
-                var img = document.getElementById(type);
                 var control = new Image();
-                control.src = img.getAttribute("src");
+                control.src = $(node).attr("image");
                 control.onload = function () {
                     globalParam.canvasContext.drawImage(control, x, y, config.nodeWidth, config.nodeHeight);
                     if (selected == "true") {
@@ -581,12 +812,84 @@
 
         _self.drawLine = function () {
             globalParam.onDrawLine = true;
-            globalParam.canvas.attr("style", 'border:1px solid #c3c3c3; cursor: url("images/arrow.png") 26 13, move;');
         }
+
+        var plugins = [
+            {
+                type: "start",
+                name: "start",
+                x: 0,
+                y: 0,
+                selected: false,
+                image: "images/start.jpg",
+                properties: {
+                    label: "start"
+                },
+                getXmlContent: function () {
+                    //生成node节点字符串
+                    var nodeString =
+                        '<node selected="true" x="0" y="0" image="' + this.image + '">\n' +
+                        '<type>' + this.type + '</type>\n' +
+                        '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
+                        '<properties>' +
+                        '<label title="名称">' + this.type + '</label>\n' +
+                        '</properties>' +
+                        '</node>';
+                    return nodeString;
+                }
+            },
+            {
+                type: "hive",
+                name: "hive",
+                x: 0,
+                y: 0,
+                selected: false,
+                image: "images/hive.png",
+                properties: {
+                    label: "hive",
+                    sql: ""
+                },
+                getXmlContent: function () {
+                    //生成node节点字符串
+                    var nodeString =
+                        '<node selected="true" x="0" y="0" image="' + this.image + '">\n' +
+                        '<type>' + this.type + '</type>\n' +
+                        '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
+                        '<properties>' +
+                        '<label title="名称">' + this.type + '</label>\n' +
+                        '<sql title="sql" description="选择一个sql文件运行"></sql>\n' +
+                        '</properties>' +
+                        '</node>';
+                    return nodeString;
+                }
+            },
+            {
+                type: "success",
+                name: "success",
+                x: 0,
+                y: 0,
+                selected: false,
+                image: "images/success.jpg",
+                properties: {
+                    label: "success"
+                },
+                getXmlContent: function () {
+                    //生成node节点字符串
+                    var nodeString =
+                        '<node selected="true" x="0" y="0" image="' + this.image + '">\n' +
+                        '<type>' + this.type + '</type>\n' +
+                        '<name>' + this.type + '_' + new Date().getMilliseconds() + '</name>\n' +
+                        '<properties>' +
+                        '<label title="名称">' + this.type + '</label>\n' +
+                        '</properties>' +
+                        '</node>';
+                    return nodeString;
+                }
+            }
+        ];
 
         // 启动插件
         _init();
-
         // 链式调用
         return this;
     };
@@ -606,7 +909,7 @@
         this.name.attribute.type = "text";
         this.name.attribute.title = "节点id";
         this.name.attribute.description = "不可更改";
-        this.name.attribute.content = type + "_" + getTimeString();
+        this.name.attribute.content = type;
 
         this.label.attribute.readonly = "false";
         this.label.attribute.type = "text";
@@ -619,11 +922,6 @@
 
         var workflowNodeSelf = this;
 
-        //私有方法 返回时间字符串 yyyyMMDDHHmmssSSS
-        var getTimeString = function () {
-            var now = new Date();
-            return "" + (1900 + now.getFullYear()) + (1 + now.getMonth()) + now.getDate() + now.getHours() + now.getMinutes() + now.getMilliseconds();
-        }
 
         this.getXmlContent = function () {
             var xmlContent = $("<node></node>");
@@ -658,22 +956,27 @@
 
             return $(xmlContent)[0].outerHTML;
         }
+
+        this.initFromXml = function (xmlContent) {
+
+        }
+
+
     }
 
-    var hiveWorkflowNode = function (x, y) {
+    var hiveNode = function (x, y) {
         workflowNode.call("hive", "hive", x, y);
-
     }
 
-    var startWorkflowNode = function (x, y) {
+    var startNode = function (x, y) {
         workflowNode.call("start", "开始", x, y);
     }
 
-    var successWorkflowNode = function (x, y) {
+    var successNode = function (x, y) {
         workflowNode.call("success", "成功", x, y);
     }
 
-
 })
 (jQuery, window);
+
 

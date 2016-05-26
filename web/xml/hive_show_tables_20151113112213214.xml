@@ -1,36 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <flow>
     <files>
+        <file>
+            /xushanshan_test/hive/xushanshan_test/hive/xushanshan_test/hive/xushanshan_test/hive/xushanshan_test/hive/xushanshan_test/hive/show_tables.sql
+        </file>
+        <file>/xushanshan_test/hive/show_tables2.sql</file>
         <file>/xushanshan_test/hive/show_tables.sql</file>
+        <file>/xushanshan_test/hive/show_tables2.sql</file>
+        <file>/xushanshan_test/hive/show_tables.sql</file>
+        <file>/xushanshan_test/hive/show_tables2.sql</file>
+        <file>/xushanshan_test/hive/show_tables.sql</file>
+        <file>/xushanshan_test/hive/show_tables2.sql</file>
+        <file>/xushanshan_test/hive/show_tables.sql</file>
+        <file>/xushanshan_test/hive/show_tables2.sql</file>
     </files>
     <nodes>
-        <node selected="true" x="300" y="300">
+        <node selected="true" x="300" y="300" image="images/hive.png">
             <type readonly="true" type="text" title="节点类型" description="不可更改">hive</type>
             <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137189</name>
-            <label readonly="false" type="text" title="节点名称" description="节点名称">hive1</label>
-            <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
-                /xushanshan_test/hive/show_tables.sql
-            </file>
-            <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
+            <properties>
+                <label readonly="false" type="text" title="节点名称" description="节点名称">hive1</label>
+                <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                    /xushanshan_test/hive/show_tables.sql
+                </file>
+                <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
+            </properties>
         </node>
-        <node selected="false" x="200" y="100">
+        <node selected="false" x="200" y="100" image="images/hive.png">
             <type readonly="true" type="text" title="节点类型" description="不可更改">hive</type>
             <name readonly="true" type="text" title="节点id" description="不可更改">hive_20151113112137188</name>
-            <label readonly="false" type="text" title="节点名称" description="节点名称">hive2</label>
-            <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
-                /xushanshan_test/hive/show_tables.sql
-            </file>
-            <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
+            <properties>
+                <label readonly="false" type="text" title="节点名称" description="节点名称">hive2</label>
+                <file readonly="true" type="chooseFile" title="sql文件" description="选择一个hive-sql文件">
+                    /xushanshan_test/hive/show_tables.sql
+                </file>
+                <attempt readonly="false" type="text" title="重试次数" description="填写数字">0</attempt>
+            </properties>
         </node>
-        <node selected="false" x="300" y="1">
+        <node selected="false" x="300" y="1" image="images/success.jpg">
             <type readonly="true" type="text" title="节点类型" description="不可更改">success</type>
             <name readonly="true" type="text" title="节点id" description="不可更改">success_20151113112133312</name>
-            <label readonly="false" type="text" title="节点名称" description="节点名称">成功</label>
+            <properties>
+                <label readonly="false" type="text" title="节点名称" description="节点名称">成功</label>
+            </properties>
+
         </node>
-        <node selected="false" x="1" y="1">
+        <node selected="false" x="1" y="1" image="images/start.jpg">
             <type readonly="true" type="text" title="节点类型" description="不可更改">start</type>
             <name readonly="true" type="text" title="节点id" description="不可更改">start_20151113112131897</name>
-            <label readonly="false" type="text" title="节点名称" description="节点名称">开始</label>
+            <properties>
+                <label readonly="false" type="text" title="节点名称" description="节点名称">开始</label>
+            </properties>
         </node>
     </nodes>
 
