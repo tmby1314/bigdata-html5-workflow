@@ -82,10 +82,14 @@
 
         // 初始化数据
         var _initData = function () {
-            if (xmlContent || xmlContent.length == 0) {
+            if (xmlContent && xmlContent.length > 0) {
+                if (Object.prototype.toString.call(xmlContent) === "[object String]") {
+                    xmlContent = parseStringToXmlDocument(xmlContent);
+                }
                 globalParam.xmlContent = $(xmlContent);
             } else {
-                globalParam.xmlContent = $('<?xml version="1.0" encoding="utf-8"?><flow><files></files><nodes></nodes><hops></hops></flow>');
+                var xmlDocument = parseStringToXmlDocument('<?xml version="1.0" encoding="utf-8"?><flow><files></files><nodes></nodes><hops></hops></flow>');
+                globalParam.xmlContent = $(xmlDocument);
             }
 
             // 生成拖拽框
@@ -915,6 +919,19 @@
                 return inputClick();
             }
             return "";
+        }
+
+        var parseStringToXmlDocument = function (xmlString) {
+            var xmlDoc = null;
+            if (window.ActiveXObject) {
+                xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+                xmlDoc.async = "false";
+                xmlDoc.loadXML(xmlString);
+            } else {
+                var parser = new DOMParser();
+                xmlDoc = parser.parseFromString(xmlString, "text/xml");
+            }
+            return xmlDoc;
         }
 
         var plugins = [
